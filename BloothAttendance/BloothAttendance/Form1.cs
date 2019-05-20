@@ -44,7 +44,7 @@ namespace BloothAttendance
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //MessageBox.Show(ex.Message);
             }
@@ -118,6 +118,7 @@ namespace BloothAttendance
 
         private DataTable dt;
         private DataTable dtAttendance;
+        private DataTable dtAbsent;
         private bool search;
         private BluetoothClient bc;
         private void Form1_Load(object sender, EventArgs ev)
@@ -133,8 +134,12 @@ namespace BloothAttendance
             dgv.DataSource = dt;
 
             dtAttendance = new DataTable();
-            dtAttendance.Columns.AddRange(new[] { new DataColumn("Name"), new DataColumn("In", typeof(DateTime)), new DataColumn("Out", typeof(DateTime)) });
+            dtAttendance.Columns.AddRange(new[] { new DataColumn("Roll"), new DataColumn("Name"), new DataColumn("In", typeof(DateTime)), new DataColumn("Out", typeof(DateTime)) });
             dgvAttendance.DataSource = dtAttendance;
+
+            dtAbsent = new DataTable();
+            dtAbsent.Columns.AddRange(new[] { new DataColumn("Roll"), new DataColumn("Name") });
+            dgvAbsent.DataSource = dtAbsent;
 
             using (var conn = OP.Conn)
             {
@@ -143,12 +148,15 @@ namespace BloothAttendance
             }
 
             tmr.Start();
+
+            FillAttandance();
+
         }
         private async void FillAttandance()
         {
             using (var conn = OP.Conn)
             {
-                var list = await conn.QueryAsync(@"select st.Name
+                var list = await conn.QueryAsync(@"select st.Roll, st.Name
 	                                    ,min(tl.time) inTime
 	                                    ,max(tl.time) outTime
                                     from student st
@@ -160,7 +168,26 @@ namespace BloothAttendance
                 dtAttendance.Rows.Clear();
                 foreach (var item in list)
                 {
-                    dtAttendance.Rows.Add(item.Name, item.inTime, item.outTime);
+                    dtAttendance.Rows.Add(item.Roll, item.Name, item.inTime, item.inTime == item.outTime ? null : item.outTime);
+                }
+
+                //fill absent
+
+                var absentList = await conn.QueryAsync(@"SELECT st.Roll, st.Name
+                                        FROM Student st
+                                        left outer JOIN timelog tl on st.id = tl.studentId
+                                        where st.id not in (
+		                                        select studentId
+		                                        from timelog
+		                                        where time > date (@TheDate)
+		                                        ) " +
+                                            (cbClass.SelectedIndex > -1 ? " and st.class=" + cbClass.SelectedIndex : "") +
+                                            @"
+                                            group by st.id", new { TheDate = DateTime.Now.ToString("yyyy-MM-dd") });
+                dtAbsent.Rows.Clear();
+                foreach (var item in absentList)
+                {
+                    dtAbsent.Rows.Add(item.Roll, item.Name);
                 }
             }
         }
