@@ -1,0 +1,72 @@
+﻿<div class="jumbotron">
+    <h1>Blootooth Attendance System</h1>
+    <p class="lead"></p>
+    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h2>Blootooth Attendance System</h2>
+        <br />
+        <div style=" display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <label for="classList">Class</label>
+                <select id="classList">
+                    <option value="0">One</option>
+                    <option value="1">Two</option>
+                    <option value="2">Three</option>
+                    <option value="3">Four</option>
+                    <option value="4">Five</option>
+                    <option value="5">Six</option>
+                    <option value="6">Seven</option>
+                    <option value="7">Eight</option>
+                    <option value="8">Nine</option>
+                    <option value="9">Ten</option>
+                    <option value="10">Eleven</option>
+                    <option value="11">Twelve</option>
+                </select>
+            </div>
+            <input type="button" value="Refresh" id="btnRefresh" />
+        </div>
+    </div>
+    <table id="tbl" class="table table-bordered table-responsive table-hover table-striped">
+        <tr>
+            <th>Roll</th>
+            <th>Name</th>
+            <th>Time1</th>
+            <th>Time2</th>
+        </tr>
+    </table>
+</div>
+<script src="~/Scripts/moment.min.js"></script>
+<script>
+    var classList = null;
+    var table = null;
+    window.addEventListener('load', () => {
+        classList = document.getElementById('classList');
+        classList.addEventListener('change', onClassChange)
+        table = document.getElementById('tbl');
+        onClassChange(null);
+        document.getElementById('btnRefresh').addEventListener('click', onClassChange)
+    })
+    function onClassChange(ev) {
+        var classId = classList.value;
+        fetch("/api/GetAttendanceByClassId/" + classId)
+            .then(r => r.json())
+            .then(v => {
+                while (table.firstChild) {
+                    table.removeChild(table.firstChild);
+                }
+                table.innerHTML = ` <tr>
+                                        <th>Roll</th>
+                                        <th>Name</th>
+                                        <th>Time1</th>
+                                        <th>Time2</th>
+                                    </tr>`;
+                v.forEach(i => {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${i.Roll}</td><td>${i.Name}</td><td>${moment(i.t1).format('DD MMM, YYYY h:mm:ss a')}</td><td>${moment(i.t2).format('DD MMM, YYYY h:mm:ss a')}</td>`
+                    table.appendChild(tr);
+                })
+            })
+    }
+</script>
