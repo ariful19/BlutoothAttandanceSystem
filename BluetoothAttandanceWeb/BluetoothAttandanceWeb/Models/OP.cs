@@ -27,5 +27,6 @@ namespace BluetoothAttandanceWeb.Models
         public int StudentId { get; set; }
         public DateTime Time { get; set; }
         public bool IsIn { get; set; }
+        public string DeviceAddress { get; set; }
     }
 }

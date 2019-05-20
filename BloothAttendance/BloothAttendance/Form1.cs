@@ -28,18 +28,25 @@ namespace BloothAttendance
 
         private async void Tmr_Tick(object sender, EventArgs e)
         {
-            using (var conn = OP.Conn)
+            try
             {
-                var list = conn.Query<TimeLog>("select * from timelog where time>date(@CurDate)", new { CurDate = DateTime.Now.ToString("yyyy-MM-dd") }).ToList();
-                if (list.Any())
+                using (var conn = OP.Conn)
                 {
-                    var json = JsonConvert.SerializeObject(list);
-                    var hc = new HttpClient();
-                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var list = conn.Query("select timelog.*,student.DeviceAddress from timelog inner join student on student.id=timelog.studentId where time>date(@CurDate)", new { CurDate = DateTime.Now.ToString("yyyy-MM-dd") }).ToList();
+                    if (list.Any())
+                    {
+                        var json = JsonConvert.SerializeObject(list);
+                        var hc = new HttpClient();
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    var res = await hc.PostAsync(url + "/api/SaveLog", content);
+                        var res = await hc.PostAsync(url + "/api/SaveLog", content);
 
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                //MessageBox.Show(ex.Message);
             }
         }
 

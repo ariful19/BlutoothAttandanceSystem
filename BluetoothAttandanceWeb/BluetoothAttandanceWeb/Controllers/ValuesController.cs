@@ -76,17 +76,17 @@ namespace BluetoothAttandanceWeb.Controllers
             {
                 foreach (var item in times)
                 {
-                    var res = await conn.ExecuteAsync("update TimeLog set StudentId=@StudentId,isin=@IsIn where Time=@Time", new
+                    int studentId = (await conn.QueryFirstOrDefaultAsync<Student>(sql: "Select * from student where deviceaddress=@DeviceAddress", param: new { item.DeviceAddress })).Id;
+                    var res = await conn.QueryAsync("select * from TimeLog  where Time=@Time and StudentId=@StudentId", new
                     {
-                        item.StudentId,
-                        item.Time,
-                        item.IsIn
+                        StudentId = studentId,
+                        item.Time
                     });
-                    if (res == 0)
+                    if (!res.Any())
                     {
                         await conn.ExecuteAsync("INSERT INTO[TimeLog](StudentId,Time,IsIn) VALUES (@StudentId,@Time,@IsIn)", new
                         {
-                            item.StudentId,
+                            StudentId = studentId,
                             item.Time,
                             item.IsIn
                         });
