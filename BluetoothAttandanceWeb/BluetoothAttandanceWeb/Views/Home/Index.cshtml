@@ -28,23 +28,40 @@
             <input type="button" value="Refresh" id="btnRefresh" />
         </div>
     </div>
-    <table id="tbl" class="table table-bordered table-responsive table-hover table-striped">
-        <tr>
-            <th>Roll</th>
-            <th>Name</th>
-            <th>Time1</th>
-            <th>Time2</th>
-        </tr>
-    </table>
+
+</div>
+<div style="display:flex;flex-flow:row wrap;">
+    <div style="flex:6">
+        <div style="font-size: 1.3em;">Present</div>
+        <table id="tbl" class="table table-bordered table-responsive table-hover table-striped col-md-6">
+            <tr>
+                <th>Roll</th>
+                <th>Name</th>
+                <th>Time1</th>
+                <th>Time2</th>
+            </tr>
+        </table>
+    </div>
+    <div style="flex:4;margin-left:.5em">
+        <div style="font-size: 1.3em;">Absent</div>
+        <table id="tblAbsent" class="table table-bordered table-responsive table-hover table-striped col-md-4">
+            <tr>
+                <th>Roll</th>
+                <th>Name</th>
+            </tr>
+        </table>
+    </div>
 </div>
 <script src="~/Scripts/moment.min.js"></script>
 <script>
     var classList = null;
     var table = null;
+    var tableAbsent = null;
     window.addEventListener('load', () => {
         classList = document.getElementById('classList');
         classList.addEventListener('change', onClassChange)
         table = document.getElementById('tbl');
+        tableAbsent = document.getElementById('tblAbsent');
         onClassChange(null);
         document.getElementById('btnRefresh').addEventListener('click', onClassChange)
     })
@@ -53,20 +70,30 @@
         fetch("/api/GetAttendanceByClassId/" + classId)
             .then(r => r.json())
             .then(v => {
-                while (table.firstChild) {
-                    table.removeChild(table.firstChild);
-                }
-                table.innerHTML = ` <tr>
-                                        <th>Roll</th>
-                                        <th>Name</th>
-                                        <th>Time1</th>
-                                        <th>Time2</th>
-                                    </tr>`;
-                v.forEach(i => {
+                //while (table.firstChild) {
+                //    table.removeChild(table.firstChild);
+                //}
+                var trr = ` <tr>
+                                <th>Roll</th>
+                                <th>Name</th>
+                                <th>Time1</th>
+                                <th>Time2</th>
+                            </tr>`;
+                table.innerHTML = trr;
+                tableAbsent.innerHTML = ` <tr>
+                                <th>Roll</th>
+                                <th>Name</th>
+                            </tr>`;
+                v.present.forEach(i => {
                     var tr = document.createElement('tr');
                     tr.innerHTML = `<td>${i.Roll}</td><td>${i.Name}</td><td>${moment(i.t1).format('DD MMM, YYYY h:mm:ss a')}</td><td>${moment(i.t2).format('DD MMM, YYYY h:mm:ss a')}</td>`
                     table.appendChild(tr);
-                })
+                });
+                v.absent.forEach(i => {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${i.Roll}</td><td>${i.Name}</td>`
+                    tableAbsent.appendChild(tr);
+                });
             })
     }
 </script>

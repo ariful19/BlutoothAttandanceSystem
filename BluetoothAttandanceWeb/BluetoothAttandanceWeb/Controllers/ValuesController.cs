@@ -35,7 +35,16 @@ namespace BluetoothAttandanceWeb.Controllers
                                     where tl.time between date (@DateFrom)
 		                                    and date (@DateTo) and st.class=" + id +
                                            @" group by st.id  order by st.roll ", new { DateFrom = DateTime.Now.ToString("yyyy-MM-dd"), DateTo = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") });
-                return Json<object>(list.ToList());
+                var absentList = await conn.QueryAsync(@"SELECT st.Roll, st.Name
+                                        FROM Student st
+                                        left outer JOIN timelog tl on st.id = tl.studentId
+                                        where st.id not in (
+		                                        select studentId
+		                                        from timelog
+		                                        where time > date (@TheDate)
+		                                        ) and st.class=" + id +
+                                            @" group by st.id", new { TheDate = DateTime.Now.ToString("yyyy-MM-dd") });
+                return Json<object>(new { present = list.ToList(), absent = absentList.ToList() });
             }
         }
         [HttpPost]
