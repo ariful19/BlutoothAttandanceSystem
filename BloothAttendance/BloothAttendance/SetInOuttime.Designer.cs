@@ -65,6 +65,7 @@
             this.dtpIn.ShowUpDown = true;
             this.dtpIn.Size = new System.Drawing.Size(157, 20);
             this.dtpIn.TabIndex = 1;
+            this.dtpIn.ValueChanged += new System.EventHandler(this.dtpIn_ValueChanged);
             // 
             // dtpOut
             // 

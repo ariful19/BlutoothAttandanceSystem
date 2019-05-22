@@ -19,11 +19,7 @@ namespace BloothAttendance
         public Form1()
         {
             InitializeComponent();
-            tmr = new Timer
-            {
-                Interval = 1000 * 60
-            };
-            tmr.Tick += Tmr_Tick;
+           
         }
 
         private async void Tmr_Tick(object sender, EventArgs e)
@@ -71,20 +67,20 @@ namespace BloothAttendance
             }
 
             print();
-            if (copy != null)
-                dt.Rows.Add(copy.Address, copy.Name, false, copy.Time);
+            //if (copy != null)
+            //    dt.Rows.Add(copy.Address, copy.Name, false, copy.Time);
 
 
         }
 
         private void print()
         {
-            dt.Rows.Clear();
+            //dt.Rows.Clear();
 
-            foreach (var item in list)
-            {
-                dt.Rows.Add(item.Address, item.Name, item.IsIn, item.Time);
-            }
+            //foreach (var item in list)
+            //{
+            //    dt.Rows.Add(item.Address, item.Name, item.IsIn, item.Time);
+            //}
             FillAttandance();
         }
 
@@ -116,12 +112,18 @@ namespace BloothAttendance
 
         }
 
-        private DataTable dt;
+        //private DataTable dt;
         private DataTable dtAttendance;
         private DataTable dtAbsent;
         private bool search;
         private BluetoothClient bc;
         private void Form1_Load(object sender, EventArgs ev)
+        {
+            LoadForm();
+
+        }
+
+        private void LoadForm()
         {
             bc = new BluetoothClient();
             var r = BluetoothRadio.PrimaryRadio;
@@ -129,9 +131,9 @@ namespace BloothAttendance
             e.InRange += E_InRange;
             e.OutOfRange += E_OutOfRange;
 
-            dt = new DataTable();
-            dt.Columns.AddRange(new[] { new DataColumn("DeviceAddress"), new DataColumn("Name"), new DataColumn("IsIn"), new DataColumn("Time") });
-            dgv.DataSource = dt;
+            //dt = new DataTable();
+            //dt.Columns.AddRange(new[] { new DataColumn("DeviceAddress"), new DataColumn("Name"), new DataColumn("IsIn"), new DataColumn("Time") });
+            //dgv.DataSource = dt;
 
             dtAttendance = new DataTable();
             dtAttendance.Columns.AddRange(new[] { new DataColumn("ID"), new DataColumn("Roll"), new DataColumn("Name"), new DataColumn("In", typeof(DateTime)), new DataColumn("Out", typeof(DateTime)) });
@@ -148,14 +150,18 @@ namespace BloothAttendance
             using (var conn = OP.Conn)
             {
                 url = conn.QueryFirstOrDefault("select SettingValue from Settings where SettingKey='URL'").SettingValue;
-                tbUrl.Text = url;
             }
 
+            tmr = new Timer
+            {
+                Interval = 1000 * 60
+            };
+            tmr.Tick += Tmr_Tick;
             tmr.Start();
 
             FillAttandance();
-
         }
+
         private async void FillAttandance()
         {
             using (var conn = OP.Conn)
@@ -198,7 +204,7 @@ namespace BloothAttendance
         private async void tglBtn_Click(object sender, EventArgs e)
         {
             search = !search;
-            tglBtn.Text = search ? "Stop" : "Start";
+            tglBtn.Text = search ? "Stop Taking Attendance" : "Start Taking Attendance";
             await Task.Run(() =>
             {
                 while (search)
@@ -208,46 +214,17 @@ namespace BloothAttendance
             });
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            using (var conn = OP.Conn)
-            {
-                if (SelectedDevice == null)
-                {
-                    MessageBox.Show("Must Select the Device.");
-                    return;
-                }
-                var first = conn.QueryFirstOrDefault("select * from Student where DeviceAddress=@DeviceAddress", new { DeviceAddress = SelectedDevice.Address });
-                var student = new Student
-                {
-                    Class = cbClass.SelectedIndex,
-                    DeviceAddress = SelectedDevice.Address,
-                    Name = tbName.Text,
-                    Roll = (int)tbRoll.Value
-                };
-                if (first != null)
-                {
-                    conn.Execute("update Student set Name=@Name,Roll=@Roll,Class=@Class where DeviceAddress=@DeviceAddress", student);
-                }
-                else
-                {
-                    conn.Execute("INSERT INTO [Student] ([Name] ,[Class] ,[Roll] ,[DeviceAddress]) VALUES (@Name ,@Class ,@Roll ,@DeviceAddress)", student);
-                }
-                MessageBox.Show("Saved Successfully!");
-            }
-        }
-
-        private BDeviceLog SelectedDevice;
+      
         private string url;
 
         private void dgv_SelectionChanged(object sender, EventArgs e)
         {
-            if (dgv.SelectedRows.Count > 0)
-            {
-                var firstRow = dgv.SelectedRows[0];
-                var dAddress = firstRow.Cells["DeviceAddress"].Value.ToString();
-                SelectedDevice = list.Find(o => o.Address == dAddress);
-            }
+            //if (dgv.SelectedRows.Count > 0)
+            //{
+            //    var firstRow = dgv.SelectedRows[0];
+            //    var dAddress = firstRow.Cells["DeviceAddress"].Value.ToString();
+            //    SelectedDevice = list.Find(o => o.Address == dAddress);
+            //}
         }
 
         private void cbClass_SelectedIndexChanged(object sender, EventArgs e)
@@ -273,14 +250,11 @@ namespace BloothAttendance
             }
         }
 
-        private void tbUrl_TextChanged(object sender, EventArgs e)
-        {
-            url = tbUrl.Text;
-        }
 
         private void dgvAbsent_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             var dlg = new SetInOuttime() { StartPosition = FormStartPosition.CenterScreen };
+            dlg.dtpOut.Enabled = false;
             var dlgRes = dlg.ShowDialog();
             if (dlgRes == DialogResult.OK)
             {
@@ -335,6 +309,19 @@ namespace BloothAttendance
                     FillAttandance();
                 }
             }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            var running = search;
+            if (search)
+                tglBtn.PerformClick();
+            new Register { }.Show();
+            FillAttandance();
+            if (!search && running)
+                tglBtn.PerformClick();
+
+
         }
     }
 

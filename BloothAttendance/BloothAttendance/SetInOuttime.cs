@@ -26,5 +26,13 @@ namespace BloothAttendance
         {
             dtpIn.Value = dtpOut.Value = DateTime.Now;
         }
+
+        private void dtpIn_ValueChanged(object sender, EventArgs e)
+        {
+            if (dtpOut.Enabled==false)
+            {
+                dtpOut.Value = dtpIn.Value;
+            }
+        }
     }
 }
