@@ -65,7 +65,7 @@ namespace BloothAttendance
                     var student = conn.QueryFirstOrDefault<Student>("select * from Student where DeviceAddress=@DeviceAddress", new { DeviceAddress = address });
                     if (student != null)
                     {
-                        conn.Execute("INSERT INTO [TimeLog]		([StudentId]		,[Time]		,[IsIn])	VALUES	(@StudentId		,@Time		,@IsIn)", new { StudentId = student.Id, Time = DateTime.Now, IsIn = false });
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = student.Id, Time = DateTime.Now, IsIn = false });
                     }
                 }
             }
@@ -106,7 +106,7 @@ namespace BloothAttendance
                     var student = conn.QueryFirstOrDefault<Student>("select * from Student where DeviceAddress=@DeviceAddress", new { DeviceAddress = address });
                     if (student != null)
                     {
-                        conn.Execute("INSERT INTO [TimeLog]		([StudentId]		,[Time]		,[IsIn])	VALUES	(@StudentId		,@Time		,@IsIn)", new { StudentId = student.Id, Time = DateTime.Now, IsIn = true });
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = student.Id, Time = DateTime.Now, IsIn = true });
                     }
                 }
             }
@@ -134,12 +134,16 @@ namespace BloothAttendance
             dgv.DataSource = dt;
 
             dtAttendance = new DataTable();
-            dtAttendance.Columns.AddRange(new[] { new DataColumn("Roll"), new DataColumn("Name"), new DataColumn("In", typeof(DateTime)), new DataColumn("Out", typeof(DateTime)) });
+            dtAttendance.Columns.AddRange(new[] { new DataColumn("ID"), new DataColumn("Roll"), new DataColumn("Name"), new DataColumn("In", typeof(DateTime)), new DataColumn("Out", typeof(DateTime)) });
             dgvAttendance.DataSource = dtAttendance;
+            dgvAttendance.Columns["ID"].Visible = false;
+            dgvAttendance.Columns["Roll"].Width = dgvAttendance.Columns["Roll"].GetPreferredWidth(DataGridViewAutoSizeColumnMode.ColumnHeader, true);
 
             dtAbsent = new DataTable();
-            dtAbsent.Columns.AddRange(new[] { new DataColumn("Roll"), new DataColumn("Name") });
+            dtAbsent.Columns.AddRange(new[] { new DataColumn("ID"), new DataColumn("Roll"), new DataColumn("Name") });
             dgvAbsent.DataSource = dtAbsent;
+            dgvAbsent.Columns[0].Visible = false;
+            dgvAbsent.Columns["Roll"].Width = dgvAbsent.Columns["Roll"].GetPreferredWidth(DataGridViewAutoSizeColumnMode.ColumnHeader, true);
 
             using (var conn = OP.Conn)
             {
@@ -156,38 +160,38 @@ namespace BloothAttendance
         {
             using (var conn = OP.Conn)
             {
-                var list = await conn.QueryAsync(@"select st.Roll, st.Name
+                var list = await conn.QueryAsync(@"select st.Id, st.Roll, st.Name
 	                                    ,min(tl.time) inTime
 	                                    ,max(tl.time) outTime
                                     from student st
                                     INNER JOIN timeLog tl on st.id = tl.studentId
                                     where tl.time between date (@DateFrom)
-		                                    and date (@DateTo) " +
+                                     and date (@DateTo) " +
                                             (cbClass.SelectedIndex > -1 ? " and st.class=" + cbClass.SelectedIndex : "") +
                                             @" group by st.id", new { DateFrom = DateTime.Now.ToString("yyyy-MM-dd"), DateTo = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") });
                 dtAttendance.Rows.Clear();
                 foreach (var item in list)
                 {
-                    dtAttendance.Rows.Add(item.Roll, item.Name, item.inTime, item.inTime == item.outTime ? null : item.outTime);
+                    dtAttendance.Rows.Add(item.Id, item.Roll, item.Name, item.inTime, item.inTime == item.outTime ? null : item.outTime);
                 }
 
                 //fill absent
 
-                var absentList = await conn.QueryAsync(@"SELECT st.Roll, st.Name
+                var absentList = await conn.QueryAsync(@"SELECT st.Id, st.Roll, st.Name
                                         FROM Student st
                                         left outer JOIN timelog tl on st.id = tl.studentId
                                         where st.id not in (
-		                                        select studentId
-		                                        from timelog
-		                                        where time > date (@TheDate)
-		                                        ) " +
+                                         select studentId
+                                         from timelog
+                                         where time > date (@TheDate)
+                                         ) " +
                                             (cbClass.SelectedIndex > -1 ? " and st.class=" + cbClass.SelectedIndex : "") +
                                             @"
                                             group by st.id", new { TheDate = DateTime.Now.ToString("yyyy-MM-dd") });
                 dtAbsent.Rows.Clear();
                 foreach (var item in absentList)
                 {
-                    dtAbsent.Rows.Add(item.Roll, item.Name);
+                    dtAbsent.Rows.Add(item.Id, item.Roll, item.Name);
                 }
             }
         }
@@ -272,6 +276,65 @@ namespace BloothAttendance
         private void tbUrl_TextChanged(object sender, EventArgs e)
         {
             url = tbUrl.Text;
+        }
+
+        private void dgvAbsent_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            var dlg = new SetInOuttime() { StartPosition = FormStartPosition.CenterScreen };
+            var dlgRes = dlg.ShowDialog();
+            if (dlgRes == DialogResult.OK)
+            {
+                if (dgvAbsent.SelectedRows.Count > 0)
+                {
+                    int studentId = int.Parse(dgvAbsent.SelectedRows[0].Cells["ID"].Value.ToString());
+                    var time1 = dlg.dtpIn.Value;
+                    var time2 = dlg.dtpOut.Value;
+                    using (var conn = OP.Conn)
+                    {
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = studentId, Time = time1, IsIn = true });
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = studentId, Time = time2, IsIn = false });
+                    }
+                    FillAttandance();
+                }
+            }
+        }
+
+        private void dgvAttendance_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            var dlg = new SetInOuttime() { StartPosition = FormStartPosition.CenterScreen };
+            var dlgRes = dlg.ShowDialog();
+            if (dlgRes == DialogResult.OK)
+            {
+                if (dgvAttendance.SelectedRows.Count > 0)
+                {
+                    int studentId = int.Parse(dgvAttendance.SelectedRows[0].Cells["ID"].Value.ToString());
+                    var time1 = dlg.dtpIn.Value;
+                    var time2 = dlg.dtpOut.Value;
+                    using (var conn = OP.Conn)
+                    {
+                        conn.Execute("delete from TimeLog where  studentId=@StudentId and Time>date(@Date)", new { StudentId = studentId, Date = DateTime.Now.ToString("yyyy-MM-dd") });
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = studentId, Time = time1, IsIn = true });
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = studentId, Time = time2, IsIn = false });
+                    }
+                    FillAttandance();
+                }
+            }
+        }
+
+        private void dgvAttendance_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                if (dgvAttendance.SelectedRows.Count > 0)
+                {
+                    int studentId = int.Parse(dgvAttendance.SelectedRows[0].Cells["ID"].Value.ToString());
+                    using (var conn = OP.Conn)
+                    {
+                        conn.Execute("delete from TimeLog where  studentId=@StudentId and Time>date(@Date)", new { StudentId = studentId, Date = DateTime.Now.ToString("yyyy-MM-dd") });
+                    }
+                    FillAttandance();
+                }
+            }
         }
     }
 

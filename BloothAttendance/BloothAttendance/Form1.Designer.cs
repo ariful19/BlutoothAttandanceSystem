@@ -159,9 +159,11 @@
             this.dgvAttendance.Name = "dgvAttendance";
             this.dgvAttendance.ReadOnly = true;
             this.dgvAttendance.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvAttendance.Size = new System.Drawing.Size(406, 247);
+            this.dgvAttendance.Size = new System.Drawing.Size(470, 247);
             this.dgvAttendance.TabIndex = 0;
+            this.dgvAttendance.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvAttendance_CellDoubleClick);
             this.dgvAttendance.SelectionChanged += new System.EventHandler(this.dgv_SelectionChanged);
+            this.dgvAttendance.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dgvAttendance_KeyDown);
             // 
             // button1
             // 
@@ -186,12 +188,13 @@
             this.dgvAbsent.AllowUserToAddRows = false;
             this.dgvAbsent.AllowUserToDeleteRows = false;
             this.dgvAbsent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvAbsent.Location = new System.Drawing.Point(424, 283);
+            this.dgvAbsent.Location = new System.Drawing.Point(492, 283);
             this.dgvAbsent.Name = "dgvAbsent";
             this.dgvAbsent.ReadOnly = true;
             this.dgvAbsent.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvAbsent.Size = new System.Drawing.Size(406, 247);
+            this.dgvAbsent.Size = new System.Drawing.Size(338, 247);
             this.dgvAbsent.TabIndex = 0;
+            this.dgvAbsent.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvAbsent_CellDoubleClick);
             this.dgvAbsent.SelectionChanged += new System.EventHandler(this.dgv_SelectionChanged);
             // 
             // label4
@@ -206,7 +209,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(424, 267);
+            this.label5.Location = new System.Drawing.Point(489, 267);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(40, 13);
             this.label5.TabIndex = 3;
@@ -232,7 +235,9 @@
             this.Controls.Add(this.dgvAbsent);
             this.Controls.Add(this.dgvAttendance);
             this.Controls.Add(this.dgv);
+            this.MaximizeBox = false;
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Attendance";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
