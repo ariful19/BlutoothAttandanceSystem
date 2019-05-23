@@ -36,13 +36,14 @@
             this.btnAdd = new System.Windows.Forms.Button();
             this.cbClass = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.dtp = new System.Windows.Forms.DateTimePicker();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAttendance)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAbsent)).BeginInit();
             this.SuspendLayout();
             // 
             // tglBtn
             // 
-            this.tglBtn.Location = new System.Drawing.Point(218, 14);
+            this.tglBtn.Location = new System.Drawing.Point(374, 14);
             this.tglBtn.Name = "tglBtn";
             this.tglBtn.Size = new System.Drawing.Size(165, 23);
             this.tglBtn.TabIndex = 1;
@@ -123,7 +124,7 @@
             "Ten",
             "Eleven",
             "Twelve"});
-            this.cbClass.Location = new System.Drawing.Point(61, 14);
+            this.cbClass.Location = new System.Drawing.Point(61, 15);
             this.cbClass.Name = "cbClass";
             this.cbClass.Size = new System.Drawing.Size(140, 21);
             this.cbClass.TabIndex = 2;
@@ -132,17 +133,28 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(20, 17);
+            this.label1.Location = new System.Drawing.Point(20, 19);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(32, 13);
             this.label1.TabIndex = 3;
             this.label1.Text = "Class";
+            // 
+            // dtp
+            // 
+            this.dtp.CustomFormat = "dd MMM, yyyy";
+            this.dtp.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtp.Location = new System.Drawing.Point(230, 16);
+            this.dtp.Name = "dtp";
+            this.dtp.Size = new System.Drawing.Size(124, 20);
+            this.dtp.TabIndex = 9;
+            this.dtp.ValueChanged += new System.EventHandler(this.dtp_ValueChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(841, 542);
+            this.Controls.Add(this.dtp);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
@@ -172,6 +184,7 @@
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.ComboBox cbClass;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.DateTimePicker dtp;
     }
 }
 

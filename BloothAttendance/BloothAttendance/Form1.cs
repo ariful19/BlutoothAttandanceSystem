@@ -53,6 +53,9 @@ namespace BloothAttendance
             string address = e.Device.DeviceAddress.ToString();
             var dl = list.Find(o => o.Address == address);
             var copy = dl != null ? (BDeviceLog)dl.Clone() : null;
+            var date = DateTime.Now;
+            var dif = date - dtp.Value;
+            date = date.AddDays(dif.Days * -1);
             if (dl != null)
             {
                 list.Remove(dl);
@@ -61,7 +64,7 @@ namespace BloothAttendance
                     var student = conn.QueryFirstOrDefault<Student>("select * from Student where DeviceAddress=@DeviceAddress", new { DeviceAddress = address });
                     if (student != null)
                     {
-                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = student.Id, Time = DateTime.Now, IsIn = false });
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = student.Id, Time = date, IsIn = false });
                     }
                 }
             }
@@ -99,10 +102,13 @@ namespace BloothAttendance
                 });
                 using (var conn = OP.Conn)
                 {
+                    var date = DateTime.Now;
+                    var dif = date - dtp.Value;
+                    date = date.AddDays(dif.Days * -1);
                     var student = conn.QueryFirstOrDefault<Student>("select * from Student where DeviceAddress=@DeviceAddress", new { DeviceAddress = address });
                     if (student != null)
                     {
-                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = student.Id, Time = DateTime.Now, IsIn = true });
+                        conn.Execute("INSERT INTO [TimeLog] ([StudentId] ,[Time] ,[IsIn])	VALUES	(@StudentId ,@Time ,@IsIn)", new { StudentId = student.Id, Time = date, IsIn = true });
                     }
                 }
             }
@@ -123,6 +129,7 @@ namespace BloothAttendance
 
         }
 
+        private bool loading = true;
         private void LoadForm()
         {
             bc = new BluetoothClient();
@@ -158,7 +165,7 @@ namespace BloothAttendance
             };
             tmr.Tick += Tmr_Tick;
             tmr.Start();
-
+            dtp.Value = DateTime.Now;
             //FillAttandance();
         }
 
@@ -174,7 +181,7 @@ namespace BloothAttendance
                                     where tl.time between date (@DateFrom)
                                      and date (@DateTo) " +
                                             (cbClass.SelectedIndex > -1 ? " and st.class=" + cbClass.SelectedIndex : "") +
-                                            @" group by st.id", new { DateFrom = DateTime.Now.ToString("yyyy-MM-dd"), DateTo = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") });
+                                            @" group by st.id", new { DateFrom = dtp.Value.ToString("yyyy-MM-dd"), DateTo = dtp.Value.AddDays(1).ToString("yyyy-MM-dd") });
                 dtAttendance.Rows.Clear();
                 foreach (var item in list)
                 {
@@ -182,18 +189,15 @@ namespace BloothAttendance
                 }
 
                 //fill absent
+                var sts = string.Join(",", dtAttendance.Rows.OfType<DataRow>().Select(o => o["ID"].ToString()));
 
                 var absentList = await conn.QueryAsync(@"SELECT st.Id, st.Roll, st.Name
                                         FROM Student st
                                         left outer JOIN timelog tl on st.id = tl.studentId
-                                        where st.id not in (
-                                         select studentId
-                                         from timelog
-                                         where time > date (@TheDate)
-                                         ) " +
+                                        where st.id not in (" + sts + " ) " +
                                             (cbClass.SelectedIndex > -1 ? " and st.class=" + cbClass.SelectedIndex : "") +
                                             @"
-                                            group by st.id", new { TheDate = DateTime.Now.ToString("yyyy-MM-dd") });
+                                            group by st.id", new { DateFrom = dtp.Value.ToString("yyyy-MM-dd"), DateTo = dtp.Value.AddDays(1).ToString("yyyy-MM-dd") });
                 dtAbsent.Rows.Clear();
                 foreach (var item in absentList)
                 {
@@ -328,6 +332,13 @@ namespace BloothAttendance
             FillAttandance();
             if (!search && running)
                 tglBtn.PerformClick();
+        }
+
+        private void dtp_ValueChanged(object sender, EventArgs e)
+        {
+            if (!loading)
+                FillAttandance();
+            loading = false;
         }
     }
 
