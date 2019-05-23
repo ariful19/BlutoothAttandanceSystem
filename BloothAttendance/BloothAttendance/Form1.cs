@@ -19,7 +19,7 @@ namespace BloothAttendance
         public Form1()
         {
             InitializeComponent();
-           
+
         }
 
         private async void Tmr_Tick(object sender, EventArgs e)
@@ -159,7 +159,7 @@ namespace BloothAttendance
             tmr.Tick += Tmr_Tick;
             tmr.Start();
 
-            FillAttandance();
+            //FillAttandance();
         }
 
         private async void FillAttandance()
@@ -204,6 +204,10 @@ namespace BloothAttendance
         private async void tglBtn_Click(object sender, EventArgs e)
         {
             search = !search;
+            if (search)
+            {
+                FillAttandance();
+            }
             tglBtn.Text = search ? "Stop Taking Attendance" : "Start Taking Attendance";
             await Task.Run(() =>
             {
@@ -214,7 +218,7 @@ namespace BloothAttendance
             });
         }
 
-      
+
         private string url;
 
         private void dgv_SelectionChanged(object sender, EventArgs e)
@@ -276,6 +280,10 @@ namespace BloothAttendance
         private void dgvAttendance_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             var dlg = new SetInOuttime() { StartPosition = FormStartPosition.CenterScreen };
+            dlg.dtpIn.Value = dgvAttendance.SelectedRows.Count > 0 ? (DateTime)dgvAttendance.SelectedRows[0].Cells["In"].Value : DateTime.Now;
+            dlg.dtpOut.Value = dgvAttendance.SelectedRows.Count > 0 && !string.IsNullOrEmpty(dgvAttendance.SelectedRows[0].Cells["Out"].Value.ToString()) ? (DateTime)dgvAttendance.SelectedRows[0].Cells["Out"].Value : DateTime.Now;
+            dlg.dtpIn.Enabled = false;
+
             var dlgRes = dlg.ShowDialog();
             if (dlgRes == DialogResult.OK)
             {
@@ -320,8 +328,6 @@ namespace BloothAttendance
             FillAttandance();
             if (!search && running)
                 tglBtn.PerformClick();
-
-
         }
     }
 

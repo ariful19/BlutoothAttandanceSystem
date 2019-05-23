@@ -195,6 +195,7 @@
             this.dgvStudents.Size = new System.Drawing.Size(823, 232);
             this.dgvStudents.TabIndex = 8;
             this.dgvStudents.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvStudents_CellDoubleClick);
+            this.dgvStudents.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dgvStudents_KeyDown);
             // 
             // Register
             // 

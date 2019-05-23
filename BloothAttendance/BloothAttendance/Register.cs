@@ -233,7 +233,23 @@ namespace BloothAttendance
 
         private void Register_FormClosed(object sender, FormClosedEventArgs e)
         {
-           // new Form1().Show();
+            // new Form1().Show();
+        }
+
+        private void dgvStudents_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                if (dgvStudents.SelectedRows.Count > 0)
+                {
+                    var studentId = int.Parse(selectedRow.Cells["ID"].Value.ToString());
+                    using (var conn = OP.Conn)
+                    {
+                        conn.Execute("delete from Student where id=@studentId", new { studentId });
+                    }
+                    FillStudents();
+                }
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ namespace BloothAttendance
 
         private void SetInOuttime_Load(object sender, EventArgs e)
         {
-            dtpIn.Value = dtpOut.Value = DateTime.Now;
+            //dtpIn.Value = dtpOut.Value = DateTime.Now;
         }
 
         private void dtpIn_ValueChanged(object sender, EventArgs e)

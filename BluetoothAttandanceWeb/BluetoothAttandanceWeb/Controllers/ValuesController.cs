@@ -85,7 +85,9 @@ namespace BluetoothAttandanceWeb.Controllers
             {
                 foreach (var item in times)
                 {
-                    int studentId = (await conn.QueryFirstOrDefaultAsync<Student>(sql: "Select * from student where deviceaddress=@DeviceAddress", param: new { item.DeviceAddress })).Id;
+                    var el = (await conn.QueryFirstOrDefaultAsync<Student>(sql: "Select * from student where deviceaddress=@DeviceAddress", param: new { item.DeviceAddress }));
+                    int studentId = el != null ? el.Id : -1;
+                    if (studentId == -1) continue;
                     var res = await conn.QueryAsync("select * from TimeLog  where Time=@Time and StudentId=@StudentId", new
                     {
                         StudentId = studentId,
