@@ -159,7 +159,7 @@ namespace BloothAttendance
             tmr.Tick += Tmr_Tick;
             tmr.Start();
 
-            FillAttandance();
+            //FillAttandance();
         }
 
         private async void FillAttandance()
@@ -204,6 +204,7 @@ namespace BloothAttendance
         private async void tglBtn_Click(object sender, EventArgs e)
         {
             search = !search;
+            if(search)FillAttandance();
             tglBtn.Text = search ? "Stop Taking Attendance" : "Start Taking Attendance";
             await Task.Run(() =>
             {
