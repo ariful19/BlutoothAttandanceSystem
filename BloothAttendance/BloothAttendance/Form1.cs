@@ -28,7 +28,10 @@ namespace BloothAttendance
             {
                 using (var conn = OP.Conn)
                 {
-                    var list = conn.Query("select timelog.*,student.DeviceAddress from timelog inner join student on student.id=timelog.studentId where time>date(@CurDate)", new { CurDate = DateTime.Now.ToString("yyyy-MM-dd") }).ToList();
+                    var date = DateTime.Now;
+                    var dif = date - dtp.Value;
+                    date = date.AddDays(dif.Days * -1);
+                    var list = conn.Query("select timelog.*,student.DeviceAddress from timelog inner join student on student.id=timelog.studentId where time>date(@CurDate)", new { CurDate = date.ToString("yyyy-MM-dd") }).ToList();
                     if (list.Any())
                     {
                         var json = JsonConvert.SerializeObject(list);
